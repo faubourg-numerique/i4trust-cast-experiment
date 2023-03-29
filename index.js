@@ -1,21 +1,13 @@
 const iShareToolsForI4Trust = require("ishare-tools-for-i4trust");
 const axios = require("axios").default;
 
-const {
-    BIOMASS_PROVIDER_IDENTIFIER,
-    BIOMASS_PROVIDER_AR_TOKEN_URL,
-    BIOMASS_PROVIDER_AR_DELEGATION_URL,
-    BIOMASS_PROVIDER_API_GATEWAY_URL,
-    PYROLYSIS_PLANT_IDENTIFIER,
-    PYROLYSIS_PLANT_X5C,
-    PYROLYSIS_PLANT_PRIVATE_KEY,
-} = require("./constants");
+require("dotenv").config({ path: __dirname + "/.env" });
 
 const DELEGATION_REQUEST = {
     delegationRequest: {
-        policyIssuer: BIOMASS_PROVIDER_IDENTIFIER,
+        policyIssuer: process.env.BIOMASS_PROVIDER_IDENTIFIER,
         target: {
-            accessSubject: PYROLYSIS_PLANT_IDENTIFIER
+            accessSubject: process.env.PYROLYSIS_PLANT_IDENTIFIER
         },
         policySets: [
             {
@@ -51,11 +43,11 @@ async function main() {
     console.log("Generating iShare JWT...");
 
     var config = {
-        issuer: PYROLYSIS_PLANT_IDENTIFIER,
-        subject: PYROLYSIS_PLANT_IDENTIFIER,
-        audience: BIOMASS_PROVIDER_IDENTIFIER,
-        x5c: PYROLYSIS_PLANT_X5C,
-        privateKey: PYROLYSIS_PLANT_PRIVATE_KEY
+        issuer: process.env.PYROLYSIS_PLANT_IDENTIFIER,
+        subject: process.env.PYROLYSIS_PLANT_IDENTIFIER,
+        audience: process.env.BIOMASS_PROVIDER_IDENTIFIER,
+        x5c: [process.env.PYROLYSIS_PLANT_X5C_1, process.env.PYROLYSIS_PLANT_X5C_2, process.env.PYROLYSIS_PLANT_X5C_3],
+        privateKey: process.env.PYROLYSIS_PLANT_PRIVATE_KEY
     };
 
     const iShareJWT = iShareToolsForI4Trust.generateIShareJWT(config);
@@ -65,8 +57,8 @@ async function main() {
     console.log("Requesting access token...");
 
     var config = {
-        arTokenURL: BIOMASS_PROVIDER_AR_TOKEN_URL,
-        clientId: PYROLYSIS_PLANT_IDENTIFIER,
+        arTokenURL: process.env.BIOMASS_PROVIDER_AR_TOKEN_URL,
+        clientId: process.env.PYROLYSIS_PLANT_IDENTIFIER,
         iShareJWT: iShareJWT
     };
 
@@ -77,7 +69,7 @@ async function main() {
     console.log("Requesting delegation token...");
 
     var config = {
-        arDelegationURL: BIOMASS_PROVIDER_AR_DELEGATION_URL,
+        arDelegationURL: process.env.BIOMASS_PROVIDER_AR_DELEGATION_URL,
         delegationRequest: DELEGATION_REQUEST,
         accessToken: accessToken
     };
@@ -88,7 +80,7 @@ async function main() {
 
     console.log("Requesting context broker through api gateway...");
 
-    var url = BIOMASS_PROVIDER_API_GATEWAY_URL + "/ngsi-ld/v1/entities?type=WasteBiomass"
+    var url = process.env.BIOMASS_PROVIDER_API_GATEWAY_URL + "/ngsi-ld/v1/entities?type=WasteBiomass"
 
     var config = {
         headers: {
