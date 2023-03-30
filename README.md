@@ -27,7 +27,7 @@ cd i4trust-cast-experiment
 npm install
 ```
 
-- Copy the **constants.js** file to this directory
+- Copy the **.env** file to this directory
 
 ## Usage
 
