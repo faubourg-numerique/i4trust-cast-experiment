@@ -1,48 +1,17 @@
+const entityType = "WasteBiomass";
+
 const iShareToolsForI4Trust = require("ishare-tools-for-i4trust");
 const axios = require("axios").default;
+const path = require("path");
 
-require("dotenv").config({ path: __dirname + "/.env" });
-
-const DELEGATION_REQUEST = {
-    delegationRequest: {
-        policyIssuer: process.env.BIOMASS_PROVIDER_IDENTIFIER,
-        target: {
-            accessSubject: process.env.PYROLYSIS_PLANT_IDENTIFIER
-        },
-        policySets: [
-            {
-                policies: [
-                    {
-                        target: {
-                            resource: {
-                                type: "WasteBiomass",
-                                identifiers: [
-                                    "*"
-                                ],
-                                attributes: [
-                                    "*"
-                                ]
-                            },
-                            actions: [
-                                "GET"
-                            ]
-                        },
-                        rules: [
-                            {
-                                effect: "Permit"
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-};
+require("dotenv").config({ path: [__dirname, ".env"].join(path.sep) });
 
 async function main() {
+    let config, url, accessToken, response;
+
     console.log("Generating iShare JWT...");
 
-    var config = {
+    config = {
         issuer: process.env.PYROLYSIS_PLANT_IDENTIFIER,
         subject: process.env.PYROLYSIS_PLANT_IDENTIFIER,
         audience: process.env.BIOMASS_PROVIDER_IDENTIFIER,
@@ -56,44 +25,41 @@ async function main() {
 
     console.log("Requesting access token...");
 
-    var config = {
+    config = {
         arTokenURL: process.env.BIOMASS_PROVIDER_AR_TOKEN_URL,
         clientId: process.env.PYROLYSIS_PLANT_IDENTIFIER,
         iShareJWT: iShareJWT
     };
 
-    const accessToken = await iShareToolsForI4Trust.getAccessToken(config);
-
-    console.log("OK\n");
-
-    console.log("Requesting delegation token...");
-
-    var config = {
-        arDelegationURL: process.env.BIOMASS_PROVIDER_AR_DELEGATION_URL,
-        delegationRequest: DELEGATION_REQUEST,
-        accessToken: accessToken
-    };
-
-    const delegationToken = await iShareToolsForI4Trust.getDelegationToken(config);
+    try {
+        accessToken = await iShareToolsForI4Trust.getAccessToken(config);
+    } catch (error) {
+        console.log("Failed\n");
+        return;
+    }
 
     console.log("OK\n");
 
     console.log("Requesting context broker through api gateway...");
 
-    var url = process.env.BIOMASS_PROVIDER_API_GATEWAY_URL + "/ngsi-ld/v1/entities?type=WasteBiomass"
+    url = `${process.env.BIOMASS_PROVIDER_API_GATEWAY_URL}/ngsi-ld/v1/entities?type=${entityType}`
 
-    var config = {
+    config = {
         headers: {
-            Authorization: `Bearer ${delegationToken}`
+            Authorization: `Bearer ${accessToken}`
         }
     };
 
-    var response = await axios.get(url, config);
-    var entities = response.data;
+    try {
+        response = await axios.get(url, config);
+    } catch (error) {
+        console.log("Failed\n");
+        return;
+    }
 
     console.log("OK\n");
 
-    console.log(entities);
+    console.log(response.data);
 }
 
 main();
