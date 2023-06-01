@@ -54,6 +54,7 @@ async function main() {
         response = await axios.get(url, config);
     } catch (error) {
         console.log("Failed\n");
+        console.log(error.response.data);
         return;
     }
 
