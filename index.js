@@ -1,4 +1,5 @@
-const entityType = "WasteBiomass";
+const entityType = "Asset";
+const contextUrl = "https://raw.githubusercontent.com/jo-al-ra/ca-re-lo/main/data-models/ngsi-context.jsonld";
 
 const iShareToolsForI4Trust = require("ishare-tools-for-i4trust");
 const axios = require("axios").default;
@@ -46,7 +47,8 @@ async function main() {
 
     config = {
         headers: {
-            Authorization: `Bearer ${accessToken}`
+            Authorization: `Bearer ${accessToken}`,
+            Link: `<${contextUrl}>`
         }
     };
 
